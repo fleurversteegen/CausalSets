@@ -6,6 +6,7 @@
 
 using namespace std;
 
+//CONSTRUCTOR
 //Create a set based on the spacetime _st and with nr of elements _nrElem
 
 Set :: Set(Spacetime _st) : st(_st)
@@ -13,17 +14,19 @@ Set :: Set(Spacetime _st) : st(_st)
     
     root = NULL;               //declare a root ("dummy") element and a tail element of the singly list of elements 
     tail = NULL;
-    nrElem = new int;         //allocate space for the pointer that holds the nr of elem
-    
+    nrElem = new long int;         //allocate space for the pointer that holds the nr of elements
+    *nrElem = 0;                   //initialize the nr of elemnts to 0
 }
 
-Set :: ~Set()
+
+//DESTRUCTOR
+Set :: ~Set()                      
 {
     Element *tmp = root;
     while(tmp) 
     {
         root = tmp->next;
-        delete tmp;
+        delete tmp;              //delete the next node in the linked list of elements
         tmp = root;
     }
 }
@@ -55,248 +58,151 @@ void Set :: AddElem(Element &e)
 
 
 //returns the nr of elements in the set
-int * Set :: GetNrElem(){ return nrElem; }
+long int * Set :: GetNrElem(){ return nrElem; }
 
 
 //returns the pointer to the root element of the set
 Element * Set :: GetRoot(){ return root; } 
 
-/*
-//sets the ID's of the nearest neighbours of an element e
-void Set :: NN(Element &e)
-{
-   int *pos = e.pos;           //points to the position of e
-    Element * walker = root;                                       //walker points at the first element after the root element
-  
-    while (walker != NULL)
-    {    int * pos_n = walker->pos;                            //pos_n will hold the position of a second element e_n which is a possible nearest neighbour. 
-       
-        if (walker->id != e.id )    //continue if the possible neighbour is not e
-        {   
-            
-            int nrNN = e.nr_of_nn;                             //holds the nr of nearest neighbours of e
-           
-            int *near_neigh = e.near_neigh;                  //points to the nearest neighbours of e
-           
-            int ds = st.MetDist(pos, pos_n);                      //calculate the metric distance between the two points
-          
-            if(ds>=0)                                              //if lightlike/timelike separated
-            {	         
-                
-              
-                int *newNN = new int[nrNN+1];                                   //add a new ID to the array of nearest neighbours
-                             
-                for(int i = 0; i<e.nr_of_nn; i++)                  //copy the current array of nearest neighbours to a new array
-                {newNN[i] = e.near_neigh[i] ;
-                                            }                  //set the new array equal to the current array
-               e.nr_of_nn += 1;
-               newNN[nrNN] = walker->id;                        //add a new id to the new array of nearest neightbours
-               delete [] e.near_neigh;                          //delete the old array
-               e.near_neigh = newNN;                       
-            }
-        }
-        walker = walker->next;                               //go to the next element in the set
-               
-    } 
-    
-  //  delete walker;
- 
-}
-
-
-
-
-vector<int>  Set :: M_Causal()
-{  
-   long int size = (*nrElem)*(*nrElem); 
-   C.resize(size); 
-   Element * walker = root;                            
-    while (walker != NULL)                                 //loop over the elements in the set
-    {
-        NN(*walker);    
-        
-        int row = (*nrElem) * ((*walker).id-1);                               //gives the position to look at given the row in the matrix 
-       
-        int column;
-        for (int i = 0; i < ((*walker).nr_of_nn); i++)                         //as the matrix is represented as a 1dim array
-        {
-           // it = C.begin();
-            column = (*walker).near_neigh[i]-1;             //for each nearest neighbour set the corresponding entry to 1   
-            if(column + 1 > (*walker).id )                  //if the element is in the causal future               
-            {
-                C[column + row]=1;// = 1;
-                     
-            }
-        } 
-        walker = walker->next;
-    }
- //   C = tmp;
-    return C; 
-
-}*/
-
 
 //sets the ID's of the nearest neighbours of an element e
 void Set :: NN(Element &e, ofstream &Output)
 {
-    
-    double *pos = e.pos;                                              //points to the position of e
-    
-    Output<<pos[1]<<" "<<pos[0]<<endl;
-    Output<<endl;
-    long int size = (*nrElem)*(*nrElem);                           //set the size of the Causal and Link matrices
-    C.resize(size);                                                //resize the Causal matrix
-    L.resize(size);                                                //resize the Link matrix
-    Element * walker = root;                                       //walker points at the first element after the root element
-    int row = (*nrElem) * (e.id-1);
+   double *pos = e.pos;                                           //points to the position of e  
+   double * pos_n;
+   Element * walker = root;                                       //walker points at the first element after the root element
+   double ds;
+ 
     while (walker != NULL)
-    {    double * pos_n = walker->pos;                            //pos_n will hold the position of a second element e_n which is a possible nearest neighbour. 
-        int column = (*walker).id - 1;           
-        if (walker->id != e.id )    //continue if the possible neighbour is not e
-        {   
-            
-            int nrNN = e.nr_of_nn;                             //holds the nr of nearest neighbours of e
-           
-            int *near_neigh = e.near_neigh;                  //points to the nearest neighbours of e
-           
-            double ds = st.MetDist(pos, pos_n);                      //calculate the metric distance between the two points
+    {    pos_n = walker->pos;                            //pos_n will hold the position of a second element e_n which is a possible nearest neighbour. 
+       
+        if ((*walker).id != e.id )                        //continue if the possible neighbour is not e itself
+        { 
+            ds = st.MetDist(pos, pos_n);                      //calculate the metric distance between the two points
           
             if(ds>=0)                                              //if lightlike/timelike separated
-            {	
-                Output<<pos_n[1]<<" "<<pos_n[0]<<endl;       
-                cout<<(*walker).id<<endl;
-                if(column + 1 > e.id )
-                {C[column + row] = 1;}
-              
-                int *newNN = new int[nrNN+1];                                   //add a new ID to the array of nearest neighbours
-                             
-                for(int i = 0; i<e.nr_of_nn; i++)                  //copy the current array of nearest neighbours to a new array
-                {newNN[i] = e.near_neigh[i] ;
-                                            }                  //set the new array equal to the current array
-               e.nr_of_nn += 1;
-               newNN[nrNN] = walker->id;                        //add a new id to the new array of nearest neightbours
-               delete [] e.near_neigh;                          //delete the old array
-               e.near_neigh = newNN;                       
+            {	  
+                (e.near_neigh).push_back(walker->id);              //add a new ID to the array of nearest neighbours
+                e.nr_of_nn += 1;                                   // increase the nr of neighbours by 1
             }
         }
-        walker = walker->next;                               //go to the next element in the set
-               
+        walker = walker->next;                                    //go to the next element in the set
     } 
-    Output<<endl;
-      
-  //  delete walker;
- 
 }
+
+
+//Causal matrix
 
 vector<int>  Set :: M_Causal(ofstream &Output)
-{
-    
+{  
+   int size =((*nrElem - 1)*(*nrElem - 1) + (*nrElem - 1))/2; 
+  
+   C.resize(size); 
+  
+   Element * walker = root;                            
+   int row = 0;
+   int column;
+   int counter = *nrElem;
+  
+    while (walker != NULL)                                                    //loop over the elements in the set
+    {
+        NN(*walker, Output);    
+       
+        for (int i = 0; i < (*walker).nr_of_nn; i++)                                      //matrix is represented as a 1 dim array. Only the bottom half is stored
+        {
+            column = ((*walker).near_neigh[i]-1) - (*nrElem - counter +1);                
+            
+            if( (*walker).near_neigh[i] > (*walker).id )                              //if the element is in the causal future               
+            {  
+                C[column + row ]=1;                                                  //for each nearest neighbour set the corresponding entry to 1
+            }
+        } 
+
+        walker = walker->next;      
+        counter += -1;                                                       //Only store the right upper triangle of the matrix
+        row  += counter;
+    }
+     
+    return C; 
+}
+
+//Link Matrix
+vector<int> Set :: M_Link()
+{     
+    int size =((*nrElem - 1)*(*nrElem - 1) + (*nrElem - 1))/2; 
+    L.resize(size); 
    
-    Element * walker = root;                            
-    while (walker != NULL)                                 //loop over the elements in the set
-    {
-        NN(*walker, Output);  
-        walker = walker->next;
-    }
+    int Csq, max;                                           
+    int row=0;
+    int column;
+    int cnt = *nrElem - 1;
 
-    return C;
-}
-
-
-
-
-
-vector<int> Set :: M_Link()
-{   //long int size = (*nrElem)*(*nrElem);                           //set the size of the Causal and Link matrices
-   // L.resize(size);                 
-    
-    int row;
-    
-        for (long int i = (*nrElem)*(*nrElem)-1; i >= 0; i--)  //loop over elements
-         {  
-             
-             row = i/(*nrElem);
-           
-            if (C[i] == 1 and L[i]!=-1 and row!=0)                                  
-            { 
-                for(int k = 1; k <= row; k++)
-                {
-                    int diag = i - ( (i + *nrElem)%(*nrElem) - row );               // diagonal element at position [i,i]
-                 
-                    if (C[ diag - (*nrElem)*k ] == 1)                                //if element [i,j] is present at row i-k, s/t [i-k,i] = 1
-                       {                                                             //then set [i-k,j] = 0
-                           L[i  - (*nrElem)*k] = -1;                                 //set a flag for each element that needs to be set to 0 eventually
-                       }
-                           
-                    else
-                    {L[i - (*nrElem)*k] = C[i - (*nrElem)*k]; }    
-                 }                          
-              
-            } 
-            else if (L[i] == -1){L[i] = 0;}                                //set all the flags to 0 
-            else {L[i] = C[i]; }
-         }cout<<endl;
-    
-
-    return L;
-}
-
-
-
-
-/*
-vector<int> Set :: M_Link()
-{  // L = new int[(*nrElem)*(*nrElem)];
-    //L = C
-    //vector<int> tmp ((*nrElem)*(*nrElem),0);
-    
-    L.resize((*nrElem)*(*nrElem));
-    int kmin;
-    int kmax;
-    
-    for(int j = 0; j< (*nrElem); j++)                            //loop over rows
-    {
-        for (int i = j*(*nrElem); i < j*(*nrElem)+*nrElem; i++)  //loop over columns from right to left
-         {//  L[i] = C[i];
-            if (C[i] == 1 and L[i]!=-1)
-            {    
-                kmin=(*nrElem+1) * (i-j*(*nrElem));
-                kmax=(*nrElem) * (i+1 -j*(*nrElem));
-              //  cout<<*nrElem<<" "<<kmin<<" "<<kmax<<endl;
-                for(int k = kmin; k < kmax; k++)                                 //check neighbours of element i
-                {
-                    if (C[k]  == 1)                                              //if element in between
-                    {                                                            //set a flag at the neighbour of element i
-                          L[i+(k -kmin)] = -1;                                   //if no flag then loop over i will set these 
-                                                                                 //elements back to initial value
-                                        
-                    }      
-                    else{L[i] = C[i]; }                                        //if no element in between                             
-        
-                }
-              
-            } else if (L[i] == -1){L[i] = 0;}                                //set all the flags to 0 
  
-        }
-    }
-//    L = tmp;
+        for (int i = 0; i < size; i++)                    //loop over elements in Causal matrix
+        {
+            Csq = 0;
+            max = row;
+            column = i - 1 + cnt;
+           
+            if(i == row)
+            {   
+                max++;
+                column += cnt - 1 - (max - row);
+            }
+            else
+            {
+                while(max < i)
+                {
+                    if(C[i]!=0)                             //if Element i is a neighbour
+                    {
+                        Csq += C[max] * C[column];          //calculate the square of the causal matrix
+                    }
+                    max++;
+                    column += cnt - 1 - (max - row);        //update column
+                }        
+                 
+            }  
+        
+            row += cnt*((column+1)/size);                   //update row
+            cnt += -((column+1)/size);
+           
+            if (Csq > 0)                                 //if the square of the causal matrix > 0, then the neighbour is not a nearest neighbour
+            {     
+                 L[i] = C[i] - 1;
+            }
+            else                                        //the neighbour is a nearest neighbour
+            {
+                L[i] = C[i];
+            }
+      }
+     
     return L;
 }
-*/
+
+
+
 
 //display the link and causal matrix
 void Set :: display(vector <int> &Matrix)
 {  
+
+    int counter = 0;
     for(int j = 0; j< (*nrElem); j++)
     { 
         for(int i = j*(*nrElem); i < j*(*nrElem)+*nrElem; i++)
-        {
-            cout<<Matrix[i]<<" ";
+        { 
+            if( i - j*( 1 + *nrElem ) <= 0)                     //print zeros for bottom half of matrix
+                {cout<<0<<" ";}
+            else
+                {
+                    cout<<Matrix[counter]<<" "; 
+                    counter+=1;
+                }
     
         }
         cout<<endl;
     }
-  //  delete [] Matrix;
+
 }
 
 

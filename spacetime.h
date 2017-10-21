@@ -13,13 +13,14 @@ private:
 
 public:
 
-    int rho_pl, L_pl, L, N,d; //planck density, planck length, size of spacetime, points along one dimension, dimension, sprinklink prob
-    float prob;
+    int L_min, L, N, d; //min length, size of spacetime, points along one dimension, dimension
+    float rho;         //sprinkling density
+    float prob;        //sprinkling prob
     
     
     
     
-    Spacetime(int, int *, int);   //Contruct spacetime by passing the size L and the metric g
+    Spacetime(int, float, int *, int);   //Contruct spacetime by passing the size L, the sprinkling density rho, the metric g and the dimension d
  
     double MetDist(double *, double *);    //Metric distance given spacetime coord
     
