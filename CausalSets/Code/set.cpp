@@ -6,6 +6,7 @@
 
 using namespace std;
 
+//CONSTRUCTOR
 //Create a set based on the spacetime _st and with nr of elements _nrElem
 
 Set :: Set(Spacetime _st) : st(_st)
@@ -13,17 +14,19 @@ Set :: Set(Spacetime _st) : st(_st)
     
     root = NULL;               //declare a root ("dummy") element and a tail element of the singly list of elements 
     tail = NULL;
-    nrElem = new int;         //allocate space for the pointer that holds the nr of elem
-    
+    nrElem = new long int;         //allocate space for the pointer that holds the nr of elements
+    *nrElem = 0;                   //initialize the nr of elemnts to 0
 }
 
-Set :: ~Set()
+
+//DESTRUCTOR
+Set :: ~Set()                      
 {
     Element *tmp = root;
     while(tmp) 
     {
         root = tmp->next;
-        delete tmp;
+        delete tmp;              //delete the next node in the linked list of elements
         tmp = root;
     }
 }
@@ -55,7 +58,7 @@ void Set :: AddElem(Element &e)
 
 
 //returns the nr of elements in the set
-int * Set :: GetNrElem(){ return nrElem; }
+long int * Set :: GetNrElem(){ return nrElem; }
 
 
 //returns the pointer to the root element of the set
@@ -65,119 +68,141 @@ Element * Set :: GetRoot(){ return root; }
 //sets the ID's of the nearest neighbours of an element e
 void Set :: NN(Element &e, ofstream &Output)
 {
-    
-    double *pos = e.pos;                                              //points to the position of e
-    
-    Output<<pos[1]<<" "<<pos[0]<<endl;
-    Output<<endl;
-    long int size = (*nrElem)*(*nrElem);                           //set the size of the Causal and Link matrices
-    C.resize(size);                                                //resize the Causal matrix
-    L.resize(size);                                                //resize the Link matrix
-    Element * walker = root;                                       //walker points at the first element after the root element
-    int row = (*nrElem) * (e.id-1);
+   double *pos = e.pos;                                           //points to the position of e  
+   double * pos_n;
+   Element * walker = root;                                       //walker points at the first element after the root element
+   double ds;
+ 
     while (walker != NULL)
-    {    double * pos_n = walker->pos;                            //pos_n will hold the position of a second element e_n which is a possible nearest neighbour. 
-        int column = (*walker).id - 1;           
-        if (walker->id != e.id )    //continue if the possible neighbour is not e
-        {   
-            
-            int nrNN = e.nr_of_nn;                             //holds the nr of nearest neighbours of e
-           
-            int *near_neigh = e.near_neigh;                  //points to the nearest neighbours of e
-           
-            double ds = st.MetDist(pos, pos_n);                      //calculate the metric distance between the two points
+    {    pos_n = walker->pos;                            //pos_n will hold the position of a second element e_n which is a possible nearest neighbour. 
+       
+        if ((*walker).id != e.id )                        //continue if the possible neighbour is not e itself
+        { 
+            ds = st.MetDist(pos, pos_n);                      //calculate the metric distance between the two points
           
             if(ds>=0)                                              //if lightlike/timelike separated
-            {	
-                Output<<pos_n[1]<<" "<<pos_n[0]<<endl;       
-              //  cout<<(*walker).id<<endl;
-                if(column + 1 > e.id )                             //fill the Causal matrix
-                {C[column + row] = 1;}
-              
-                int *newNN = new int[nrNN+1];                                   //add a new ID to the array of nearest neighbours
-                             
-                for(int i = 0; i<e.nr_of_nn; i++)                  //copy the current array of nearest neighbours to a new array
-                {newNN[i] = e.near_neigh[i] ;
-                                            }                  //set the new array equal to the current array
-               e.nr_of_nn += 1;
-               newNN[nrNN] = walker->id;                        //add a new id to the new array of nearest neightbours
-               delete [] e.near_neigh;                          //delete the old array
-               e.near_neigh = newNN;                       
+            {	  
+                (e.near_neigh).push_back(walker->id);              //add a new ID to the array of nearest neighbours
+                e.nr_of_nn += 1;                                   // increase the nr of neighbours by 1
             }
         }
-        walker = walker->next;                               //go to the next element in the set
-               
+        walker = walker->next;                                    //go to the next element in the set
     } 
-    Output<<endl;
-      
-  //  delete walker;
- 
 }
+
+
+//Causal matrix
 
 vector<int>  Set :: M_Causal(ofstream &Output)
-{
-    
-   
-    Element * walker = root;                            
-    while (walker != NULL)                                 //loop over the elements in the set
+{  
+   int size =((*nrElem - 1)*(*nrElem - 1) + (*nrElem - 1))/2; 
+  
+   C.resize(size); 
+  
+   Element * walker = root;                            
+   int row = 0;
+   int column;
+   int counter = *nrElem;
+  
+    while (walker != NULL)                                                    //loop over the elements in the set
     {
-        NN(*walker, Output);  
-        walker = walker->next;
-    }
+        NN(*walker, Output);    
+       
+        for (int i = 0; i < (*walker).nr_of_nn; i++)                                      //matrix is represented as a 1 dim array. Only the bottom half is stored
+        {
+            column = ((*walker).near_neigh[i]-1) - (*nrElem - counter +1);                
+            
+            if( (*walker).near_neigh[i] > (*walker).id )                              //if the element is in the causal future               
+            {  
+                C[column + row ]=1;                                                  //for each nearest neighbour set the corresponding entry to 1
+            }
+        } 
 
-    return C;
+        walker = walker->next;      
+        counter += -1;                                                       //Only store the right upper triangle of the matrix
+        row  += counter;
+    }
+     
+    return C; 
 }
 
-
-
+//Link Matrix
 vector<int> Set :: M_Link()
 {     
-    int Csq;                                           //C^2 = Cl * Cr
-    int row;
+    int size =((*nrElem - 1)*(*nrElem - 1) + (*nrElem - 1))/2; 
+    L.resize(size); 
+   
+    int Csq, max;                                           
+    int row=0;
     int column;
-        for (int i = 0; i < (*nrElem)*(*nrElem); i++)  //loop over elements in Cl matrix
-        {   
-            row = i/ (*nrElem);                        //row in the Cl matrix to be multiplied by the column in the Cr matrix
-            column = (i + *nrElem)%(*nrElem);          //column in the Cr matrix
+    int cnt = *nrElem - 1;
+
+ 
+        for (int i = 0; i < size; i++)                    //loop over elements in Causal matrix
+        {
             Csq = 0;
-            if (C[i] !=0 )
+            max = row;
+            column = i - 1 + cnt;
+           
+            if(i == row)
+            {   
+                max++;
+                column += cnt - 1 - (max - row);
+            }
+            else
             {
-                for (int j = 0; j < (*nrElem); j++)        // loop over elements in the row and column of Cl and Cr respectively
+                while(max < i)
+                {
+                    if(C[i]!=0)                             //if Element i is a neighbour
                     {
-                        Csq += C[row * (*nrElem) + j] * C[column +j * (*nrElem)];
-                   
+                        Csq += C[max] * C[column];          //calculate the square of the causal matrix
                     }
+                    max++;
+                    column += cnt - 1 - (max - row);        //update column
+                }        
+                 
+            }  
+        
+            row += cnt*((column+1)/size);                   //update row
+            cnt += -((column+1)/size);
+           
+            if (Csq > 0)                                 //if the square of the causal matrix > 0, then the neighbour is not a nearest neighbour
+            {     
+                 L[i] = C[i] - 1;
             }
-            else
+            else                                        //the neighbour is a nearest neighbour
             {
-                Csq = 0;
+                L[i] = C[i];
             }
-            if (Csq > 0)
-                {
-                    L[i] = C[i] - 1;                         //L_ij = C_ij - (C^2)_ij where if (C^2)_ij > 0, the ij entry is set to 1 
-                }
-            else
-                {
-                    L[i] = C[i];
-                }
-        }
+      }
+     
     return L;
 }
+
+
 
 
 //display the link and causal matrix
 void Set :: display(vector <int> &Matrix)
 {  
+
+    int counter = 0;
     for(int j = 0; j< (*nrElem); j++)
     { 
         for(int i = j*(*nrElem); i < j*(*nrElem)+*nrElem; i++)
-        {
-            cout<<Matrix[i]<<" ";
+        { 
+            if( i - j*( 1 + *nrElem ) <= 0)                     //print zeros for bottom half of matrix
+                {cout<<0<<" ";}
+            else
+                {
+                    cout<<Matrix[counter]<<" "; 
+                    counter+=1;
+                }
     
         }
         cout<<endl;
     }
-  //  delete [] Matrix;
+
 }
 
 
