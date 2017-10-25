@@ -92,76 +92,9 @@ Element * Set :: GetNode(int n)
     return walker;
 }
 
-//sets the ID's of the nearest neighbours of an element e
-void Set :: NN(Element &e, ofstream &Output)
-{
-   double *pos = e.pos;                                           //points to the position of e  
-   double * pos_n;
-   Element * walker = tail;                                       //walker points at the first element after the root element
-   double ds;
-   
- 
-    while (walker != NULL)
-    {    pos_n = walker->pos;                                    //pos_n will hold the position of a second element e_n which is a possible nearest neighbour. 
-          
-        if ((*walker).id != e.id )                               //continue if the possible neighbour is not e itself
-        { 
-           
-            ds = st.MetDist(pos, pos_n);                         //calculate the metric distance between the two points
-          
-            if(ds>=0)                                              //if lightlike/timelike separated
-            {	
-                
-                e.is_nn(walker->id);
-                (e.near_neigh).push_back(walker->id);              //add a new ID to the array of nearest neighbours
-                e.nr_of_nn += 1;                                   // increase the nr of neighbours by 1
-            
-            }
-        }
-        walker = walker->prev;                                    //go to the next element in the set
-    } 
-}
-
-
-
-/*
-//sets the ID's of the nearest neighbours of an element e
-void Set :: NN(Element &e, ofstream &Output)
-{
-   double *pos = e.pos;                                           //points to the position of e  
-   double * pos_n;
-   Element * walker = root;                                       //walker points at the first element after the root element
-   double ds;
-   try
-   {
-       (e.near_neigh).reserve(*nrElem);
-   }
-   catch(const std::bad_alloc& ex)
-   {
-     cout<<"ERROR: NO MORE RAM!"<<endl;
-     exit(0);
-   }
-   
-    while (walker != NULL)
-    {    pos_n = walker->pos;                            //pos_n will hold the position of a second element e_n which is a possible nearest neighbour. 
-       
-        if ((*walker).id != e.id )                        //continue if the possible neighbour is not e itself
-        { 
-            ds = st.MetDist(pos, pos_n);                      //calculate the metric distance between the two points
-          
-            if(ds>=0)                                              //if lightlike/timelike separated
-            {	  
-                (e.near_neigh).push_back(walker->id);              //add a new ID to the array of nearest neighbours
-                e.nr_of_nn += 1;                                   // increase the nr of neighbours by 1
-               
-            }
-        }
-        walker = walker->next;                                    //go to the next element in the set
-    } 
-}
-
 
 //sets the ID's of the nearest neighbours of an element e
+//OLD VERSION!! NEW VERSION UNDER CONSTRUCTION
 void Set :: NN(Element &e, ofstream &Output)
 {
    double *pos = e.pos;                                           //points to the position of e  
@@ -194,7 +127,7 @@ void Set :: NN(Element &e, ofstream &Output)
     } 
 }
 
-*/
+
 
 //Causal matrix
 
