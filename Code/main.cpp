@@ -6,8 +6,7 @@
 # include "set.h"       //Constains declarations of a set
 # include <ctime>
 # include <math.h>
-#include <stdio.h> 
-#include <sys/sysinfo.h> 
+
 using namespace std;
 
 //TODO:
