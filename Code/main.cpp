@@ -129,28 +129,16 @@ int main()
     
     cout<<*S.GetNrElem()<<endl;             //print the nr of Elements in the Set
     
-    Element *walker = S.GetRoot();
-    Element *walker2 = S.GetTail();
-    Element *walker3 = S.GetNode(4);
-    cout<<(*walker3).id<<endl;
-    int flag_ram;
-    flag_ram = ram_usage();
-    std::system("cd /bin");
+    Element *walker = S.GetRoot();          //Get the root element
+    Element *walker2 = S.GetTail();         //Get the tail element
+    Element *walker3 = S.GetNode(4);        //Get the element with id 4
+     
     while(walker != NULL)
-    {     
-        /*  if (((*walker).id)%1000 == 0)
-          {std::system( "top -b -n 1 | grep a.out  >> /home/fleur/Documents/CausalSets/Code/result.txt" );
-       //   cout << (*walker).id<<"       "<<std::system( "top -b -n 1 | grep a.out" )<<endl;
-    //std::cout << "top result summary\n-----------------\n" 
-    //          << std::ifstream( "/tmp/result.txt" ).rdbuf() ; 
-        }*/S.NN(*walker, Output);
+    {           
+        S.NN(*walker, Output);              //Determine the neighbours of each element in the set
         walker = walker->next;
-         //   if(!flag_ram){
-         //   exit(0);
-         //   }
     }
-    cout<<walker3->id<<endl;
-    cout<<walker3->is_nn(5)<<endl;
+  
 //    vector <int> C = S.M_Causal(Output2);   //Calculate the Causal matrix (WARNING: DON'T ATTEMPT FOR )
   
 //    vector <int> Link = S.M_Link();         //Calculate the Link matrix
