@@ -43,7 +43,7 @@ double Spacetime :: MetDist(double * _pos1, double * _pos2)
     double ds_sq = 0;
     for (int i =0; i<d; i++)
         {
-            ds_sq +=  ((*(_pos1 + i) - *(_pos2 + i)) * (*(_pos1 + i)- (*_pos2 + i))) * metric[i];     //take the product ds^2 = dx*dx*g
+            ds_sq +=  ((*(_pos1 + i) - *(_pos2 + i)) * (*(_pos1 + i)- *(_pos2 + i))) * metric[i];     //take the product ds^2 = dx*dx*g
         }
     return ds_sq;
 }
