@@ -75,7 +75,7 @@ Element * Set :: GetNode(int n)
     if (n > (*nrElem)/2)
     {   
         walker = tail;
-        for (int i = *nrElem; i > (*nrElem -((*walker).id-1)); i--)
+        for (int i = *nrElem; i > n; i--)
         {
             walker = walker->prev;
         }
@@ -92,9 +92,99 @@ Element * Set :: GetNode(int n)
     return walker;
 }
 
+//sets the ID's of the nearest neighbours of an element e
+//Start from the bottom and work your way up
+void Set :: NN(Element &e, Element &en, ofstream &Output)
+{
+    Element *walker = &en;
+    double *pos = e.pos;                                           //points to the position of e  
+    double *pos_n; 
+    double *pos_t;
+    int flag;
+//   Element * walker = tail;                                       //walker points at the first element after the root element
+    double ds; 
+    double ds_n;
+    int counter = 0;
+    while (walker != NULL)
+    { 
+        pos_n = walker->pos;
+        ds = st.MetDist(pos, pos_n);
+        if (ds >= 0 and e.is_nn(walker->id) == 0) 
+        { 
+            flag = 0;
+            for( int i = e.nn_past - 1; i>=0; i--)
+                { 
+                    Element *tmp = GetNode(e.near_neigh[i]);
+                    pos_t = tmp->pos;
+                    ds_n = st.MetDist(pos_t, pos_n);
+                    
+                    if( walker->id < tmp->id)
+                    {counter +=1;
+                        if(ds_n >= 0 )
+                        {
+                            flag = 1;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+               }
+            if (flag == 0)
+            {
+                (e.near_neigh).insert((e.near_neigh).begin(), walker->id);
+                (&e)->nn_past += 1;
+                ((*walker).near_neigh).insert(((*walker).near_neigh).end()-((*walker).nn_future), e.id);
+                walker->nn_future += 1;
+            }    
+        }
+        walker = walker->prev;
+        
+    }//cout<<e.id<<" "<<counter<<endl;
+ 
+}
+
+
+
+/*
+//sets the ID's of the nearest neighbours of an element e
+void Set :: NN(Element &e, ofstream &Output)
+{
+   double *pos = e.pos;                                           //points to the position of e  
+   double * pos_n;
+   Element * walker = root;                                       //walker points at the first element after the root element
+   double ds;
+   try
+   {
+       (e.near_neigh).reserve(*nrElem);
+   }
+   catch(const std::bad_alloc& ex)
+   {
+     cout<<"ERROR: NO MORE RAM!"<<endl;
+     exit(0);
+   }
+   
+    while (walker != NULL)
+    {    pos_n = walker->pos;                            //pos_n will hold the position of a second element e_n which is a possible nearest neighbour. 
+       
+        if ((*walker).id != e.id )                        //continue if the possible neighbour is not e itself
+        { 
+            ds = st.MetDist(pos, pos_n);                      //calculate the metric distance between the two points
+          
+            if(ds>=0)                                              //if lightlike/timelike separated
+            {	  
+                (e.near_neigh).push_back(walker->id);              //add a new ID to the array of nearest neighbours
+                e.nr_of_nn += 1;                                   // increase the nr of neighbours by 1
+               
+            }
+        }
+        walker = walker->next;                                    //go to the next element in the set
+    } 
+}
+
 
 //sets the ID's of the nearest neighbours of an element e
-//OLD VERSION!! NEW VERSION UNDER CONSTRUCTION
 void Set :: NN(Element &e, ofstream &Output)
 {
    double *pos = e.pos;                                           //points to the position of e  
@@ -242,7 +332,7 @@ void Set :: display(vector <int> &Matrix)
     }
 
 }
-
+*/
 
 
 

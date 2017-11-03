@@ -6,7 +6,8 @@
 # include "set.h"       //Constains declarations of a set
 # include <ctime>
 # include <math.h>
-
+#include <stdio.h> 
+#include <sys/sysinfo.h> 
 using namespace std;
 
 //TODO:
@@ -36,7 +37,7 @@ void SprinkleRec(int * p, int d, int dim, int max, float prob, Set& set, ofstrea
                     {
                         *(pos + j) = (*(p + j) - 0.5)+((double) rand() / (RAND_MAX));      //randomly place the element in the region assigned to point p
                     }   
-                Element e(*set.GetNrElem()+1, pos, d); 
+               Element e(*set.GetNrElem()+1, pos, d); 
           
                set.AddElem(e);
                   
@@ -44,9 +45,7 @@ void SprinkleRec(int * p, int d, int dim, int max, float prob, Set& set, ofstrea
                Output <<pos[0]<<" "<<pos[1]<<endl;       //print position of the element to the Output file
                
                delete [] pos;
-                      
-                  
-                }  
+           }  
              
     }
    else
@@ -110,8 +109,8 @@ int main()
     
      
     int metric[] = {1,-1,-1,-1};            //choose a metric
-    int L = 4;                              //each dimension runs from -(L-L_min) to (L-L_min)
-    int d = 2;                              //spacetime dimension
+    int L = 10;                              //each dimension runs from -(L-L_min) to (L-L_min)
+    int d = 4;                              //spacetime dimension
     float rho = 1;                          //Sprinkling density
   
     Spacetime st(L, rho, metric, d);        //Create a spacetime
@@ -128,16 +127,55 @@ int main()
     
     cout<<*S.GetNrElem()<<endl;             //print the nr of Elements in the Set
     
-    Element *walker = S.GetRoot();          //Get the root element
-    Element *walker2 = S.GetTail();         //Get the tail element
-    Element *walker3 = S.GetNode(4);        //Get the element with id 4
-     
-    while(walker != NULL)
-    {           
-        S.NN(*walker, Output);              //Determine the neighbours of each element in the set
+    Element *walker = S.GetRoot();
+    Element *walker2 = S.GetTail();
+    Element *walker3 = S.GetNode(4);
+ //   cout<<(*walker3).id<<endl;
+ //   int flag_ram;
+ //   flag_ram = ram_usage();
+ //   std::system("cd /bin");
+ //   cout<<(*walker2->prev).id<<endl;
+    
+    double ds; 
+    /*
+    while (walker != NULL)
+    {   walker2 = S.GetTail();
+        while(walker2 != NULL)
+        {
+            ds = st.MetDist(walker->pos, walker2->pos);
+            cout<<walker->id<<" "<<walker2->id<<" "<<ds<<endl;
+            walker2 = walker2->prev;
+        }
+        cout<<endl;
         walker = walker->next;
-    }
+    }*/
+    
+
   
+    while(walker->next != NULL)
+    {     
+      walker = walker->next;
+      //cout<<walker2->id<<" "<<walker2->prev->id<<endl;
+        S.NN(*walker, *walker->prev, Output);
+      // cout<<walker2->id<<" "<<walker2->prev->id<<" "<<ds<<endl;
+     // cout<<"bla"<<walker2->id<<endl<<endl<<endl;
+    /*   cout<<" element "<<walker->id<<" has nn "<<endl;
+       for(int i = 0; i < (walker->near_neigh).size(); i++)
+       {
+           cout<<(walker->near_neigh)[i]<<"  ";
+       }
+       cout<<endl<<"and element "<<walker->prev->id<<" has now nn "<<endl;
+       for(int i = 0; i < (walker->prev->near_neigh).size(); i++)
+       {
+           cout<<(walker->prev->near_neigh)[i]<<"  ";
+       }
+       cout<<endl;
+      *///walker2 = walker2->prev;
+      //exit(0);
+    }
+    
+ //   cout<<walker3->id<<endl;
+ //   cout<<walker3->is_nn(5)<<endl;
 //    vector <int> C = S.M_Causal(Output2);   //Calculate the Causal matrix (WARNING: DON'T ATTEMPT FOR )
   
 //    vector <int> Link = S.M_Link();         //Calculate the Link matrix

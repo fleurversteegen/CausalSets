@@ -30,7 +30,9 @@ public:
 
     void AddElem(Element& );          //add a new element to the set
     
-    void NN(Element&, ofstream& );    //finds the nearest neighbours of an element
+    void NN(Element&, Element&, ofstream& );
+    
+   // void NN(Element&, ofstream& );    //finds the nearest neighbours of an element
     
     Element *GetRoot();               //return the pointer to the root Element
  

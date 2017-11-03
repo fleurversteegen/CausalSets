@@ -13,6 +13,7 @@ struct Element
     vector <int> near_neigh;  // holds a vector of 
     int  nr_of_nn;
     int id,d;
+    int nn_past, nn_future;
     Element *next, *prev;
     
 
@@ -26,7 +27,7 @@ struct Element
  //CONSTRUCTOR
  //Constructs an element give an id, position and spacetime dimension
 
-    Element(int _id, double *_pos, int _d) : id(_id), d(_d), next(NULL), prev(NULL), nr_of_nn(0)    
+    Element(int _id, double *_pos, int _d) : id(_id), d(_d), next(NULL), prev(NULL), nr_of_nn(0),nn_past(0),nn_future(0)    
     {   
         pos = new double[d];
         for(int i = 0; i<d; i++)
